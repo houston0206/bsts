@@ -1,5 +1,6 @@
 package edu.ttap.bsts;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
 
         /**
          * @param value the value of the node
-         * @param left the left child of the node
+         * @param left  the left child of the node
          * @param right the right child of the node
          */
         public Node(T value, Node<T> left, Node<T> right) {
@@ -68,71 +69,148 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
 
     /**
      * @param node the binary search tree
-     * @param v the value to insert
+     * @param v    the value to insert
      */
-    private void insertH(Node<T> node, T v) {
-        if (node == null)
-            node = new Node<T>(v);
-        else if (v.compareTo(root.value) < 0)
-            insertH(node.left, v);
-        else 
-            insertH(node.right, v);
+    private Node<T> insertH(Node<T> node, T v) {
+        if (node == null) {
+            return new Node<>(v);
+        } else {
+            if (v.compareTo(node.value) < 0) {
+                node.left = insertH(node.left, v);
+            } else {
+                node.right = insertH(node.right, v);
+            }
+            return node;
+        }
     }
 
     /**
      * Inserts the given value into this binary search tree.
+     * 
      * @param v the value to insert
      */
     public void insert(T v) {
-        if (root == null)
-            root = new Node<T>(v);
-        else if (v.compareTo(root.value) < 0)
-            insertH(root.left, v);
-        else 
-            insertH(root.right, v);
+        root = insertH(root, v);
     }
 
     ///// Part 2: Contains
-   
+    
     /**
+     * @param node the binary search tree
+     * @param v    the value to insert
+     */
+    private boolean containH(Node<T> node, T v) {
+        if (node == null) {
+            return false;
+        } else {
+            if(v.compareTo(node.value) == 0) {
+                return true;
+            } else if(v.compareTo(node.value) < 0) {
+                return containH(node.left, v);
+            } else {
+                return containH(node.right, v);
+            }
+        }
+    }
+
+    /**
+     * Check iff v is contained within the given tree.
      * @param v the value to find
      * @return true iff this tree contains <code>v</code>
      */
     public boolean contains(T v) {
-        throw new UnsupportedOperationException();
+        return containH(root, v);
     }
 
     ///// Part 3: Ordered Traversals
 
     /**
+     * @param node the binary search tree
+     */
+    private String toStringH(Node<T> node) {
+        if(node == null){
+            return "";
+        }
+        if (toStringH(node.left).isEmpty() && toStringH(node.right).isEmpty()) {
+            return node.value.toString();
+        } else if (toStringH(node.left).isEmpty()) {
+            return node.value + ", " + toStringH(node.right);
+        } else if (toStringH(node.right).isEmpty()) {
+            return toStringH(node.left) + ", " + node.value;
+        } else {
+            return toStringH(node.left) + ", " + node.value + ", " + toStringH(node.right);
+        } 
+    }
+
+    /**
+     * Display values in a tree as string.
      * @return the (linearized) string representation of this BST
      */
     @Override
     public String toString() {
-        throw new UnsupportedOperationException();
+        return "[" + toStringH(root) + "]";
     }
 
     /**
+     * @param node the binary search tree
+     * @param list the list we record the elements of the tree
+     */
+    private void toListH(Node<T> node, List<T> list) {
+        if(node == null){
+            return;
+        }
+        toListH(node.left, list);
+        list.add(node.value);
+        toListH(node.right, list);
+    }
+
+    /**
+     * Display the elements of the tree as a list.
      * @return a list contains the elements of this BST in-order.
      */
     public List<T> toList() {
-        throw new UnsupportedOperationException();
+        List<T> list = new ArrayList();
+        toListH(root, list);
+        return list;
     }
 
     ///// Part 4: BST Sorting
+    public static <T> void swap(T[] arr, int i, int j) {
+        T tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+    }
 
     /**
      * @param <T> the carrier type of the lists
      * @param lst the list to sort
      * @return a copy of <code>lst</code> but sorted
-     * @implSpec <code>sort</code> runs in ___ time if the tree remains balanced. 
+     * @implSpec <code>sort</code> runs in ___ time if the tree remains balanced.
      */
     public static <T extends Comparable<? super T>> List<T> sort(List<T> lst) {
-        throw new UnsupportedOperationException();
-    }
+        List<T> events = new ArrayList<>();
+        int length = lst.size();
+        if (length == 0 || length == 1) {
+           return events;
+        }
+        for (int i = 0; i < length; i++) {
+            T min = lst.get(i);
+            int minIndex = i;
+            for (int j = i+1; j < length; j++) {
+                if (lst.get(j).compareTo(min) < 0) {
+                    min = lst.get(j);
+                    minIndex = j;
+                }
+            }
+            if (i != minIndex) {
+                swap(lst, i, minIndex);
+            }
+        }
+        return events;
+   } 
 
     ///// Part 5: Deletion
-  
+
     /*
      * The three cases of deletion are:
      * 1. (TODO: fill me in!)
@@ -141,7 +219,8 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
      */
 
     /**
-     * Modifies the tree by deleting the first occurrence of <code>value</code> found
+     * Modifies the tree by deleting the first occurrence of <code>value</code>
+     * found
      * in the tree.
      *
      * @param value the value to delete
