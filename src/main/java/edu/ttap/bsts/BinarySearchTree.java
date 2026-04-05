@@ -94,7 +94,7 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
     }
 
     ///// Part 2: Contains
-    
+
     /**
      * @param node the binary search tree
      * @param v    the value to insert
@@ -103,9 +103,9 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
         if (node == null) {
             return false;
         } else {
-            if(v.compareTo(node.value) == 0) {
+            if (v.compareTo(node.value) == 0) {
                 return true;
-            } else if(v.compareTo(node.value) < 0) {
+            } else if (v.compareTo(node.value) < 0) {
                 return containH(node.left, v);
             } else {
                 return containH(node.right, v);
@@ -115,6 +115,7 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
 
     /**
      * Check iff v is contained within the given tree.
+     * 
      * @param v the value to find
      * @return true iff this tree contains <code>v</code>
      */
@@ -128,22 +129,26 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
      * @param node the binary search tree
      */
     private String toStringH(Node<T> node) {
-        if(node == null){
+        if (node == null) {
             return "";
         }
-        if (toStringH(node.left).isEmpty() && toStringH(node.right).isEmpty()) {
+        String leftSide = toStringH(node.left);
+        String rightSide = toStringH(node.right);
+
+        if (leftSide.isEmpty() && rightSide.isEmpty()) {
             return node.value.toString();
-        } else if (toStringH(node.left).isEmpty()) {
-            return node.value + ", " + toStringH(node.right);
-        } else if (toStringH(node.right).isEmpty()) {
-            return toStringH(node.left) + ", " + node.value;
+        } else if (leftSide.isEmpty()) {
+            return node.value + ", " + rightSide;
+        } else if (rightSide.isEmpty()) {
+            return leftSide + ", " + node.value;
         } else {
-            return toStringH(node.left) + ", " + node.value + ", " + toStringH(node.right);
-        } 
+            return leftSide + ", " + node.value + ", " + rightSide;
+        }
     }
 
     /**
      * Display values in a tree as string.
+     * 
      * @return the (linearized) string representation of this BST
      */
     @Override
@@ -156,7 +161,7 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
      * @param list the list we record the elements of the tree
      */
     private void toListH(Node<T> node, List<T> list) {
-        if(node == null){
+        if (node == null) {
             return;
         }
         toListH(node.left, list);
@@ -166,6 +171,7 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
 
     /**
      * Display the elements of the tree as a list.
+     * 
      * @return a list contains the elements of this BST in-order.
      */
     public List<T> toList() {
@@ -175,12 +181,6 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
     }
 
     ///// Part 4: BST Sorting
-    public static <T> void swap(T[] arr, int i, int j) {
-        T tmp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = tmp;
-    }
-
     /**
      * @param <T> the carrier type of the lists
      * @param lst the list to sort
@@ -188,35 +188,64 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
      * @implSpec <code>sort</code> runs in ___ time if the tree remains balanced.
      */
     public static <T extends Comparable<? super T>> List<T> sort(List<T> lst) {
-        List<T> events = new ArrayList<>();
-        int length = lst.size();
-        if (length == 0 || length == 1) {
-           return events;
+        BinarySearchTree<T> newBst = new BinarySearchTree<>();
+        for (int i = 0; i < lst.size(); i++) {
+            newBst.insert(lst.get(i));
         }
-        for (int i = 0; i < length; i++) {
-            T min = lst.get(i);
-            int minIndex = i;
-            for (int j = i+1; j < length; j++) {
-                if (lst.get(j).compareTo(min) < 0) {
-                    min = lst.get(j);
-                    minIndex = j;
-                }
-            }
-            if (i != minIndex) {
-                swap(lst, i, minIndex);
-            }
-        }
-        return events;
-   } 
+        return newBst.toList();
+    }
 
     ///// Part 5: Deletion
 
     /*
      * The three cases of deletion are:
-     * 1. (TODO: fill me in!)
-     * 2. (TODO: fill me in!)
-     * 3. (TOOD: fill me in!)
+     * 1. Both left and right are null
+     * 2. The node has one child, either left or right
+     * 3. The node has two children, both left and right
      */
+
+    /**
+     * Find the minimum value in the right child
+     * so that it'll be the alternative of the deleted node
+     *
+     * @param node the node to check
+     */
+    private T findMin(Node<T> node) {
+        if (node.left == null) {
+            return node.value;
+        }
+        return findMin(node.left);
+    }
+
+    /**
+     * @param node the node to delete
+     * @param v the value we are looking for
+     */
+
+    private Node<T> deleteH(Node<T> node, T v) {
+        if (node == null) {
+            return null;
+        } else if (v.compareTo(node.value) == 0) {
+            if (node.left == null && node.right == null) {
+                return null;
+            } else if (node.left == null) {
+                return node.right;
+            } else if (node.right == null) {
+                return node.left;
+            } else {
+                Node<T> newNode = node.right;
+                node.value = findMin(newNode);
+                node.right = deleteH(node.right, node.value);
+            }
+            return node;
+        } else if (v.compareTo(node.value) < 0) {
+            node.left = deleteH(node.left, v);
+            return node;
+        } else {
+            node.right = deleteH(node.right, v);
+            return node;
+        }
+    }
 
     /**
      * Modifies the tree by deleting the first occurrence of <code>value</code>
@@ -226,6 +255,6 @@ public class BinarySearchTree<T extends Comparable<? super T>> {
      * @param value the value to delete
      */
     public void delete(T value) {
-        throw new UnsupportedOperationException();
+        root = deleteH(root, value);
     }
 }
